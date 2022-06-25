@@ -1,8 +1,11 @@
 package com.example.app.view;
 
 import com.example.app.models.ProductModel;
+import com.example.app.services.AnalyzeService;
 import com.example.app.services.RepositoryService;
 
+import java.text.DecimalFormat;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ConsoleView {
@@ -11,17 +14,23 @@ public class ConsoleView {
     private int applicationStatus = 1;
 
     private final RepositoryService<ProductModel> service;
+    private final AnalyzeService<ProductModel> analyzeService;
 
-    public ConsoleView(RepositoryService<ProductModel> service) {
+    public ConsoleView(RepositoryService<ProductModel> service, AnalyzeService<ProductModel> analyzeService) {
         this.service = service;
+        this.analyzeService = analyzeService;
     }
 
     public void start() {
         configInit();
         showTitle();
         while(applicationStatus != 0) {
-            showOptions();
-            handleUserOption();
+            try {
+                showOptions();
+                handleUserOption();
+            } catch(NumberFormatException ex ) {
+                System.out.println("ERROR: Entrada invalida");
+            }
         }
     }
 
@@ -40,7 +49,8 @@ public class ConsoleView {
         System.out.println("1. Administrar inventario");
         System.out.println("2. Analizar datos");
         System.out.println("0. Salir");
-        applicationStatus = input.nextInt();
+        String response = input.next();
+        applicationStatus = Integer.valueOf(response);
     }
 
     private void handleUserOption() {
@@ -54,6 +64,9 @@ public class ConsoleView {
             case 2:
                 showAnalyzeOptions();
                 break;
+            default:
+                System.out.println("Seleccione una opcion válida");
+                break;
         }
     }
 
@@ -62,51 +75,68 @@ public class ConsoleView {
         System.out.println("1. ACTUALIZAR");
         System.out.println("2. BORRAR");
         System.out.println("3. AGREGAR");
-        int response = input.nextInt();
+        String response = input.next();
         switch (response) {
-            case 1:
+            case "1":
                 updateProduct();
                 break;
-            case 2:
+            case "2":
                 deleteProduct();
                 break;
-            case 3:
+            case "3":
                 addProduct();
                 break;
-
+            default:
+                System.out.println("Seleccione una opcion válida");
+                break;
         }
     }
 
     private void addProduct() {
         ProductModel newProduct = new ProductModel();
         System.out.println("\nCódigo:  ");
-        newProduct.setCode(input.nextInt());
+        String code = input.next();
+        newProduct.setCode(Integer.valueOf(code));
         System.out.println("Nombre:");
         newProduct.setName(input.next());
         System.out.println("Precio:");
-        newProduct.setPrice(input.next());
+        String price = input.next();
+        newProduct.setPrice(Double.valueOf(price));
         System.out.println("Inventario: ");
-        newProduct.setInventario(input.next());
+        String inventory = input.next();
+        newProduct.setInventario(Double.valueOf(inventory));
         service.save(newProduct);
     }
 
     private void updateProduct() {
         ProductModel newProduct = new ProductModel();
         System.out.println("\nCódigo:  ");
-        newProduct.setCode(input.nextInt());
+        String code = input.next();
+        newProduct.setCode(Integer.valueOf(code));
         System.out.println("Nombre:");
-        newProduct.setName(input.nextLine());
+        newProduct.setName(input.next());
         System.out.println("Precio:");
-        newProduct.setPrice(input.nextLine());
+        String price = input.next();
+        newProduct.setPrice(Double.valueOf(price));
         System.out.println("Inventario: ");
-        newProduct.setInventario(input.nextLine());
+        String inventory = input.next();
+        newProduct.setInventario(Double.valueOf(inventory));
         service.update(newProduct);
     }
 
     private void deleteProduct() {
         ProductModel newProduct = new ProductModel();
         System.out.println("\nCódigo:  ");
-        newProduct.setCode(input.nextInt());
+        String code = input.next();
+        newProduct.setCode(Integer.valueOf(code));
+        System.out.println("Nombre:");
+        newProduct.setName(input.next());
+        System.out.println("Precio:");
+        String price = input.next();
+        newProduct.setPrice(Double.valueOf(price));
+        System.out.println("Inventario: ");
+        String inventory = input.next();
+        newProduct.setInventario(Double.valueOf(inventory));
         service.delete(newProduct);
     }
 
@@ -116,6 +146,26 @@ public class ConsoleView {
         System.out.println("2. Producto con menor precio");
         System.out.println("3. Promedio de precios");
         System.out.println("4. Valor del inventario");
+        String response = input.next();
+        switch (response) {
+            case "1":
+                ProductModel higherProduct = analyzeService.calculateHigher();
+                System.out.println("Producto precio mayor: " + higherProduct.getName());
+                break;
+            case "2":
+                ProductModel lowestProduct = analyzeService.calculateLowest();
+                System.out.println("Producto precio menor: " + lowestProduct.getName());
+                break;
+            case "3":
+                System.out.println("Promedio de precios: " + new DecimalFormat("#.0").format(analyzeService.averagePrice()));
+                break;
+            case "4":
+                System.out.println("Valor del inventario: " + new DecimalFormat("#.0").format(analyzeService.calculateTotal()));
+                break;
+            default:
+                System.out.println("Seleccione una opcion válida");
+                break;
+        }
     }
 
     private void exitApplication() {

@@ -14,7 +14,7 @@ public class Startup {
         HashMap<Integer, ProductModel> dataSource = new HashMap<Integer, ProductModel>();
         ProductRepository repository = new ProductRepository(dataSource);
         ProductRepositoryService service = new ProductRepositoryService(repository);
-        new ConsoleView(service).start();
+        new ConsoleView(service, service).start();
     }
 
 }
